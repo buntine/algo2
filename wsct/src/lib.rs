@@ -10,15 +10,19 @@ pub struct Job {
 }
 
 impl Job {
-    fn value(&self) -> f32 {
+    fn ratio(&self) -> f32 {
         self.weight as f32 / self.length as f32
+    }
+
+    fn diff(&self) -> f32 {
+        self.weight as f32 - self.length as f32
     }
 }
 
 impl Ord for Job {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.value()
-            .partial_cmp(&other.value())
+        self.diff()
+            .partial_cmp(&other.diff())
             .unwrap_or(Ordering::Equal)
             .reverse()
     }
@@ -75,5 +79,20 @@ mod tests {
         let s = wsct(&mut jobs);
 
         assert_eq!(s, 10000);
+    }
+
+    #[test]
+    fn test2() {
+        let mut jobs = vec![
+            Job{weight: 8, length: 50},
+            Job{weight: 74, length: 59},
+            Job{weight: 31, length: 73},
+            Job{weight: 45, length: 79},
+            Job{weight: 10, length: 10},
+            Job{weight: 41, length: 66},
+        ];
+        let s = wsct(&mut jobs);
+
+        assert_eq!(s, 31814)
     }
 }
