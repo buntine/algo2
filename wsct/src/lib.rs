@@ -4,9 +4,18 @@ use std::io::BufRead;
 use std::fs::File;
 use std::cmp::Ordering;
 
+#[derive(Debug)]
+#[derive(Clone)]
+pub enum JobStrategy {
+    Diff,
+    Ratio,
+}
+
+#[derive(Debug)]
 pub struct Job {
     weight: i32,
     length: i32,
+    strategy: JobStrategy,
 }
 
 impl Job {
@@ -17,11 +26,18 @@ impl Job {
     fn diff(&self) -> f32 {
         self.weight as f32 - self.length as f32
     }
+
+    fn value(&self) -> f32 {
+        match self.strategy {
+            JobStrategy::Diff => self.diff(),
+            JobStrategy::Ratio => self.ratio(),
+        }
+    }
 }
 
 impl Ord for Job {
     fn cmp(&self, other: &Self) -> Ordering {
-        let order = match self.diff().partial_cmp(&other.diff()).unwrap_or(Ordering::Equal) {
+        let order = match self.value().partial_cmp(&other.value()).unwrap_or(Ordering::Equal) {
             Ordering::Less => Ordering::Less,
             Ordering::Greater => Ordering::Greater,
             Ordering::Equal => {
@@ -33,9 +49,7 @@ impl Ord for Job {
             }
         };
 
-        order.reverse();
-
-        order
+        order.reverse()
     }
 }
 
@@ -67,7 +81,7 @@ pub fn wsct(jobs: &mut Vec<Job>) -> i64 {
     sum
 }
 
-pub fn jobs_from_file(path: &Path) -> Result<Vec<Job>, std::io::Error> {
+pub fn jobs_from_file(path: &Path, strategy: JobStrategy) -> Result<Vec<Job>, std::io::Error> {
     let file = try!(File::open(path));
     let buffer = BufReader::new(&file);
     let parse_job = |l: std::io::Result<String>| -> Job {
@@ -76,7 +90,7 @@ pub fn jobs_from_file(path: &Path) -> Result<Vec<Job>, std::io::Error> {
                                      .map(|d| d.parse::<i32>().ok().unwrap())
                                      .collect();
 
-        Job{weight: details[0], length: details[1]}
+        Job{weight: details[0], length: details[1], strategy: strategy.clone()}
     };
 
     let jobs = buffer.lines()
@@ -95,24 +109,30 @@ mod tests {
     #[test]
     fn test1() {
         let p = Path::new("jobs.txt");
-        let mut jobs: Vec<Job> = jobs_from_file(&p).ok().unwrap();
+        let mut jobs: Vec<Job> = jobs_from_file(&p, JobStrategy::Diff).ok().unwrap();
         let s = wsct(&mut jobs);
 
-        assert_eq!(s, 10000);
+        assert_eq!(s, 69119377652);
     }
 
     #[test]
     fn test2() {
         let mut jobs = vec![
-            Job{weight: 8, length: 50},
-            Job{weight: 74, length: 59},
-            Job{weight: 31, length: 73},
-            Job{weight: 45, length: 79},
-            Job{weight: 10, length: 10},
-            Job{weight: 41, length: 66},
+            Job{weight: 8, length: 50, strategy: JobStrategy::Diff},
+            Job{weight: 74, length: 59, strategy: JobStrategy::Diff},
+            Job{weight: 31, length: 73, strategy: JobStrategy::Diff},
+            Job{weight: 45, length: 79, strategy: JobStrategy::Diff},
+            Job{weight: 10, length: 10, strategy: JobStrategy::Diff},
+            Job{weight: 41, length: 66, strategy: JobStrategy::Diff},
         ];
         let s = wsct(&mut jobs);
 
-        assert_eq!(s, 31814)
+        assert_eq!(s, 31814);
+    }
+
+    #[test]
+    fn test3() {
+
+
     }
 }
