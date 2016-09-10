@@ -13,10 +13,9 @@ mod tests {
 
     #[test]
     fn test1() {
-        let size = 10;
         let jobs: Vec<Job> = vec![];
         let s = wsct(&jobs[..]);
 
-        assert_eq!(1, 1)
+        assert_eq!(s, 10)
     }
 }
