@@ -21,10 +21,21 @@ impl Job {
 
 impl Ord for Job {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.diff()
-            .partial_cmp(&other.diff())
-            .unwrap_or(Ordering::Equal)
-            .reverse()
+        let order = match self.diff().partial_cmp(&other.diff()).unwrap_or(Ordering::Equal) {
+            Ordering::Less => Ordering::Less,
+            Ordering::Greater => Ordering::Greater,
+            Ordering::Equal => {
+                if self.weight > other.weight {
+                    Ordering::Greater
+                } else {
+                    Ordering::Less
+                }
+            }
+        };
+
+        order.reverse();
+
+        order
     }
 }
 
@@ -42,9 +53,18 @@ impl PartialEq for Job {
 
 impl Eq for Job { }
 
-pub fn wsct(jobs: &mut Vec<Job>) -> i32 {
+pub fn wsct(jobs: &mut Vec<Job>) -> i64 {
     jobs.sort_by(|a, b| a.cmp(b));
-    return jobs.len() as i32;
+
+    let mut sum: i64 = 0;
+    let mut len: i64 = 0;
+
+    for j in jobs {
+        len += j.length as i64;
+        sum += j.weight as i64 * len;
+    }
+
+    sum
 }
 
 pub fn jobs_from_file(path: &Path) -> Result<Vec<Job>, std::io::Error> {
