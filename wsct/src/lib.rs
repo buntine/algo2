@@ -109,30 +109,41 @@ mod tests {
     #[test]
     fn test1() {
         let p = Path::new("jobs.txt");
-        let mut jobs: Vec<Job> = jobs_from_file(&p, JobStrategy::Diff).ok().unwrap();
-        let s = wsct(&mut jobs);
+        let mut diff_jobs: Vec<Job> = jobs_from_file(&p, JobStrategy::Diff).ok().unwrap();
+        let diff_s = wsct(&mut diff_jobs);
 
-        assert_eq!(s, 69119377652);
+        let mut ratio_jobs: Vec<Job> = jobs_from_file(&p, JobStrategy::Ratio).ok().unwrap();
+        let ratio_s = wsct(&mut ratio_jobs);
+
+        assert_eq!(diff_s, 69119377652);
+        assert_eq!(ratio_s, 67311454237);
     }
 
     #[test]
     fn test2() {
-        let mut jobs = vec![
-            Job{weight: 8, length: 50, strategy: JobStrategy::Diff},
-            Job{weight: 74, length: 59, strategy: JobStrategy::Diff},
-            Job{weight: 31, length: 73, strategy: JobStrategy::Diff},
-            Job{weight: 45, length: 79, strategy: JobStrategy::Diff},
-            Job{weight: 10, length: 10, strategy: JobStrategy::Diff},
-            Job{weight: 41, length: 66, strategy: JobStrategy::Diff},
-        ];
-        let s = wsct(&mut jobs);
+        let details = vec![[8, 50], [74, 59], [31, 73],
+                           [45, 79], [10, 10], [41, 66]];
+        let mut diff_jobs = details.iter().map(|d| Job{weight: d[0], length: d[1], strategy: JobStrategy::Diff}).collect();
+        let diff_s = wsct(&mut diff_jobs);
 
-        assert_eq!(s, 31814);
+        let mut ratio_jobs = details.iter().map(|d| Job{weight: d[0], length: d[1], strategy: JobStrategy::Ratio}).collect();
+        let ratio_s = wsct(&mut ratio_jobs);
+
+        assert_eq!(diff_s, 31814);
+        assert_eq!(ratio_s, 31814);
     }
 
     #[test]
     fn test3() {
+        let details = vec![[8, 50], [74, 59], [31, 73], [45, 79], [24, 10],
+                           [41, 66], [93, 43], [88, 4], [28, 30], [41, 13]];
+        let mut diff_jobs = details.iter().map(|d| Job{weight: d[0], length: d[1], strategy: JobStrategy::Diff}).collect();
+        let diff_s = wsct(&mut diff_jobs);
 
+        let mut ratio_jobs = details.iter().map(|d| Job{weight: d[0], length: d[1], strategy: JobStrategy::Ratio}).collect();
+        let ratio_s = wsct(&mut ratio_jobs);
 
+        assert_eq!(diff_s, 61545);
+        assert_eq!(ratio_s, 60213);
     }
 }
