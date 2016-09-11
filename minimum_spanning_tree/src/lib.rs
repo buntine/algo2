@@ -5,7 +5,7 @@ use std::fs::File;
 
 #[derive(Debug)]
 pub struct Graph {
-    nodes: Vec<Vertex>,
+    vertices: Vec<Vertex>,
 }
 
 #[derive(Debug)]
@@ -24,7 +24,7 @@ pub struct Edge {
 impl Graph {
     fn build(&mut self, size: i32) {
         for i in 0..size {
-            self.nodes.push(Vertex{label: i, explored: false, edges: vec![]});
+            self.vertices.push(Vertex{label: i, explored: false, edges: vec![]});
         }
     }
 
@@ -41,7 +41,7 @@ impl Graph {
     }
 
     fn from_file(path: &Path) -> Result<Graph, std::io::Error> {
-        let mut g = Graph{nodes: vec![]};
+        let mut g = Graph{vertices: vec![]};
         let file = try!(File::open(path));
         let mut buffer = BufReader::new(&file);
         let mut first_line = String::new();
@@ -59,8 +59,8 @@ impl Graph {
                     let head = (details[0] - 1) as usize;
                     let tail = (details[1] - 1) as usize;
 
-                    g.nodes[head].edges.push(Edge{tail: tail, cost: details[2]});
-                    g.nodes[tail].edges.push(Edge{tail: head, cost: details[2]});
+                    g.vertices[head].edges.push(Edge{tail: tail, cost: details[2]});
+                    g.vertices[tail].edges.push(Edge{tail: head, cost: details[2]});
                 },
                 Err(e) => return Err(e),
             }
@@ -70,7 +70,7 @@ impl Graph {
     }
 }
 
-pub fn mst(g: &Graph) -> i32 {
+pub fn mst(g: &mut Graph) -> i32 {
     23
 }
 
@@ -81,17 +81,17 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut g = Graph{nodes: vec![]};
+        let mut g = Graph{vertices: vec![]};
 
         g.build(2);
-        g.nodes[0].edges.push(Edge{cost: 10, tail: 1});
-        g.nodes[1].edges.push(Edge{cost: 10, tail: 0});
+        g.vertices[0].edges.push(Edge{cost: 10, tail: 1});
+        g.vertices[1].edges.push(Edge{cost: 10, tail: 0});
 
-        assert_eq!(g.nodes[1].label, 1);
+        assert_eq!(g.vertices[1].label, 1);
 
-        let ref e = g.nodes[0].edges[0];
+        let ref e = g.vertices[0].edges[0];
         assert_eq!(e.cost, 10);
-        assert_eq!(g.nodes[e.tail].label, 1);
+        assert_eq!(g.vertices[e.tail].label, 1);
     }
 
     #[test]
@@ -100,16 +100,16 @@ mod tests {
 
         let mut g = Graph::from_file(p).ok().unwrap();
 
-        assert_eq!(g.nodes[0].label, 0);
-        assert_eq!(g.nodes[5].label, 5);
-        assert_eq!(g.nodes[30].label, 30);
+        assert_eq!(g.vertices[0].label, 0);
+        assert_eq!(g.vertices[5].label, 5);
+        assert_eq!(g.vertices[30].label, 30);
 
-        let ref e = g.nodes[0].edges[0];
+        let ref e = g.vertices[0].edges[0];
         assert_eq!(e.cost, 6807);
         assert_eq!(e.tail, 1);
-        assert_eq!(g.nodes[e.tail].label, 1);
+        assert_eq!(g.vertices[e.tail].label, 1);
 
-        let ref e = g.nodes[18].edges[1];
+        let ref e = g.vertices[18].edges[1];
         assert_eq!(e.cost, 7674);
     }
 
@@ -118,7 +118,7 @@ mod tests {
         let p = Path::new("edges_simple1.txt");
         let mut g = Graph::from_file(p).ok().unwrap();
 
-        assert_eq!(mst(&g), 5)
+        assert_eq!(mst(&mut g), 5)
     }
 
     #[test]
@@ -126,6 +126,6 @@ mod tests {
         let p = Path::new("edges_simple2.txt");
         let mut g = Graph::from_file(p).ok().unwrap();
 
-        assert_eq!(mst(&g), 16)
+        assert_eq!(mst(&mut g), 16)
     }
 }
