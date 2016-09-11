@@ -52,7 +52,7 @@ impl Graph {
 
         g.build(details[0]);
 
-        for l in buffer.lines().skip(1) {
+        for l in buffer.lines() {
             match l {
                 Ok(parts) => {
                     let details = Graph::split_line::<i32>(&parts[..]);
@@ -99,7 +99,11 @@ mod tests {
         assert_eq!(g.nodes[30].label, 30);
 
         let ref e = g.nodes[0].edges[0];
-        println!("{:?}", g.nodes[0].edges);
-        //assert_eq!(g.nodes[e.tail].label, 1);
+        assert_eq!(e.cost, 6807);
+        assert_eq!(e.tail, 1);
+        assert_eq!(g.nodes[e.tail].label, 1);
+
+        let ref e = g.nodes[18].edges[1];
+        assert_eq!(e.cost, 7674);
     }
 }
