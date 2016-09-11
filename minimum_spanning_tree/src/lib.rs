@@ -128,4 +128,13 @@ mod tests {
 
         assert_eq!(mst(&mut g), 16)
     }
+
+    #[test]
+    fn simple3() {
+        let p = Path::new("edges_simple3.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert_eq!(mst(&mut g), -236)
+    }
+
 }
