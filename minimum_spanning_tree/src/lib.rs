@@ -34,7 +34,7 @@ impl Graph {
                 let e = d.trim().parse::<T>();
                 match e {
                     Ok(v) => v,
-                    Err(ee) => panic!("Invalid: {:?}", d),
+                    Err(_) => panic!("Invalid: {:?}", d),
                 }
             })
             .collect()
@@ -56,9 +56,11 @@ impl Graph {
             match l {
                 Ok(parts) => {
                     let details = Graph::split_line::<i32>(&parts[..]);
+                    let head = (details[0] - 1) as usize;
+                    let tail = (details[1] - 1) as usize;
 
-                    g.nodes[(details[0] - 1) as usize].edges.push(Edge{tail: (details[1] - 1) as usize, cost: details[2]});
-                    g.nodes[(details[1] - 1) as usize].edges.push(Edge{tail: (details[0] - 1) as usize, cost: details[2]});
+                    g.nodes[head].edges.push(Edge{tail: tail, cost: details[2]});
+                    g.nodes[tail].edges.push(Edge{tail: head, cost: details[2]});
                 },
                 Err(e) => return Err(e),
             }
@@ -66,6 +68,10 @@ impl Graph {
  
         Ok(g)
     }
+}
+
+pub fn mst(g: &Graph) -> i32 {
+    23
 }
 
 #[cfg(test)]
@@ -89,7 +95,7 @@ mod tests {
     }
 
     #[test]
-    fn test2() {
+    fn representation() {
         let p = Path::new("edges.txt");
 
         let mut g = Graph::from_file(p).ok().unwrap();
@@ -105,5 +111,21 @@ mod tests {
 
         let ref e = g.nodes[18].edges[1];
         assert_eq!(e.cost, 7674);
+    }
+
+    #[test]
+    fn simple1() {
+        let p = Path::new("edges_simple1.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert_eq!(mst(&g), 5)
+    }
+
+    #[test]
+    fn simple2() {
+        let p = Path::new("edges_simple2.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert_eq!(mst(&g), 16)
     }
 }
