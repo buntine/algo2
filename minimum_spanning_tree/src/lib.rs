@@ -3,10 +3,22 @@ pub struct Graph {
 }
 
 pub struct Vertex {
-    length: u32,
     label: i32,
     explored: bool,
-    adjacent: Vec<i32>,
+    adjacent: Vec<Edge>,
+}
+
+pub struct Edge {
+    cost: u32,
+    tail: i32,
+}
+
+impl Graph {
+    fn build(&mut self, size: i32) {
+        for i in 0..size {
+            self.nodes.push(Vertex{label: i, explored: false, adjacent: vec![]});
+        }
+    }
 }
 
 #[cfg(test)]
@@ -16,13 +28,14 @@ mod tests {
     #[test]
     fn it_works() {
         let mut g = Graph{nodes: vec![]};
-        let mut v1 = Vertex{label: 0, length: 1, explored: false, adjacent: vec![]};
-        let mut v2 = Vertex{label: 1, length: 1, explored: false, adjacent: vec![]};
 
-        v1.adjacent.push(1);
-        v2.adjacent.push(0);
+        g.build(2);
+        g.nodes[0].adjacent.push(Edge{cost: 10, tail: 1});
+        g.nodes[1].adjacent.push(Edge{cost: 12, tail: 0});
+    }
 
-        g.nodes.push(v1);
-        g.nodes.push(v2);
+    #[test]
+    fn test2() {
+        
     }
 }
