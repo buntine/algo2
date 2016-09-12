@@ -81,13 +81,15 @@ pub fn mst(g: &mut Graph) -> i32 {
     let mut total_cost = 0;
     let mut smallest_e_cost: i32;
 
-    t.vertices.push(Vertex{label: g.vertices[0].label, explored: false, edges: vec![]});
-    g.vertices[0].explored = true;
+    t.build(g.vertices.len() as i32);
 
-    while &t.vertices.len() < &g.vertices.len() {
+    g.vertices[0].explored = true;
+    t.vertices[0].explored = true;
+
+    for _ in 0..(g.vertices.len()-1) {
         smallest_e_cost = 999999;
 
-        for vertex in &t.vertices {
+        for vertex in t.vertices.iter().filter(|v| v.explored) {
             for edge in &g.vertices[vertex.label as usize].edges {
                 if edge.cost < smallest_e_cost && g.vertices[edge.tail].explored == false {
                     smallest_e = edge.tail;
@@ -99,8 +101,9 @@ pub fn mst(g: &mut Graph) -> i32 {
 
         total_cost += smallest_e_cost;
         g.vertices[smallest_e as usize].explored = true;
-        t.vertices[smallest_v as usize].edges.push(Edge{tail: smallest_e, cost: smallest_e_cost});
-        t.vertices.push(Vertex{label: smallest_e as i32, explored: false, edges: vec![Edge{tail: smallest_v as usize, cost: smallest_e_cost}]});
+        t.vertices[smallest_e as usize].explored = true;
+        t.vertices[smallest_v as usize].edges.push(Edge{tail: smallest_e as usize, cost: smallest_e_cost});
+        t.vertices[smallest_e as usize].edges.push(Edge{tail: smallest_v as usize, cost: smallest_e_cost});
     }
 
     total_cost
@@ -150,7 +153,7 @@ mod tests {
         let p = Path::new("edges.txt");
         let mut g = Graph::from_file(p).ok().unwrap();
 
-        assert_eq!(mst(&mut g), 4)
+        assert_eq!(mst(&mut g), -3612829)
     }
 
     #[test]
