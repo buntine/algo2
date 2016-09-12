@@ -22,6 +22,10 @@ pub struct Edge {
 }
 
 impl Graph {
+    fn new() -> Graph {
+        Graph{vertices: vec![]}
+    }
+
     fn build(&mut self, size: i32) {
         for i in 0..size {
             self.vertices.push(Vertex{label: i, explored: false, edges: vec![]});
@@ -71,7 +75,35 @@ impl Graph {
 }
 
 pub fn mst(g: &mut Graph) -> i32 {
-    23
+    let mut t = Graph::new();
+    let mut smallest_e = 0;
+    let mut smallest_v = 0;
+    let mut total_cost = 0;
+    let mut smallest_e_cost: i32;
+
+    t.vertices.push(Vertex{label: g.vertices[0].label, explored: false, edges: vec![]});
+    g.vertices[0].explored = true;
+
+    while &t.vertices.len() < &g.vertices.len() {
+        smallest_e_cost = 999999;
+
+        for vertex in &t.vertices {
+            for edge in &g.vertices[vertex.label as usize].edges {
+                if edge.cost < smallest_e_cost && g.vertices[edge.tail].explored == false {
+                    smallest_e = edge.tail;
+                    smallest_e_cost = edge.cost;
+                    smallest_v = vertex.label;
+                }
+            }
+        }
+
+        total_cost += smallest_e_cost;
+        g.vertices[smallest_e as usize].explored = true;
+        t.vertices[smallest_v as usize].edges.push(Edge{tail: smallest_e, cost: smallest_e_cost});
+        t.vertices.push(Vertex{label: smallest_e as i32, explored: false, edges: vec![Edge{tail: smallest_v as usize, cost: smallest_e_cost}]});
+    }
+
+    total_cost
 }
 
 #[cfg(test)]
@@ -81,7 +113,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut g = Graph{vertices: vec![]};
+        let mut g = Graph::new();
 
         g.build(2);
         g.vertices[0].edges.push(Edge{cost: 10, tail: 1});
@@ -114,11 +146,19 @@ mod tests {
     }
 
     #[test]
+    fn run() {
+        let p = Path::new("edges.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert_eq!(mst(&mut g), 4)
+    }
+
+    #[test]
     fn simple1() {
         let p = Path::new("edges_simple1.txt");
         let mut g = Graph::from_file(p).ok().unwrap();
 
-        assert_eq!(mst(&mut g), 5)
+        assert_eq!(mst(&mut g), 4)
     }
 
     #[test]
@@ -136,5 +176,4 @@ mod tests {
 
         assert_eq!(mst(&mut g), -236)
     }
-
 }
