@@ -113,10 +113,13 @@ pub fn cluster_spacing(groups: usize, g: &mut Graph) -> i32 {
     let mut edges: Vec<Edge> = vec![];
     let mut clusters = g.vertices.len();
     let mut min_spacing = 0;
+    let mut sizes: Vec<i32> = vec![];
 
     t.build(clusters as i32);
 
     for v in &g.vertices {
+        sizes.push(1);
+
         for e in &v.edges {
             edges.push(Edge{head: e.head, tail: e.tail, cost: e.cost});
         }
@@ -125,15 +128,26 @@ pub fn cluster_spacing(groups: usize, g: &mut Graph) -> i32 {
     edges.sort_by(|a, b| a.cmp(b));
 
     for e in &edges {
-        if clusters <= groups {
-            min_spacing = e.cost;
-            break;
-        }
+        let hleader = t.vertices[e.head].leader;
+        let tleader = t.vertices[e.tail].leader;
 
-        let leader = t.vertices[e.head].leader;
+        if hleader != tleader {
+            println!("{}, {}", e.head, e.tail);
+            if clusters <= groups {
+                min_spacing = e.cost;
+                println!("{:?}", sizes);
+                break;
+            }
 
-        if leader != t.vertices[e.tail].leader {
-            update_leaders(&mut t, e.tail, leader);
+            if sizes[e.head] >= sizes[e.tail] {
+                update_leaders(&mut t, e.tail, hleader);
+                sizes[e.head] += sizes[e.tail];
+                sizes[e.tail] = 0;
+            } else {
+                update_leaders(&mut t, e.head, tleader);
+                sizes[e.tail] += sizes[e.head];
+                sizes[e.head] = 0;
+            }
 
             t.vertices[e.head].edges.push(Edge{head: e.head, tail: e.tail, cost: e.cost});
             clusters -= 1;
@@ -186,13 +200,13 @@ mod tests {
         assert_eq!(e.cost, 3659);
     }
 
-    #[test]
-    fn execute() {
-        let p = Path::new("clustering1.txt");
-        let mut g = Graph::from_file(p).ok().unwrap();
-
-        assert_eq!(cluster_spacing(4, &mut g), 2)
-    }
+//    #[test]
+//    fn execute() {
+//        let p = Path::new("clustering1.txt");
+ //       let mut g = Graph::from_file(p).ok().unwrap();
+//
+ //       assert_eq!(cluster_spacing(4, &mut g), 2)
+  //  }
 
     #[test]
     fn simple1() {
@@ -201,4 +215,21 @@ mod tests {
 
         assert_eq!(cluster_spacing(4, &mut g), 2)
     }
+
+    #[test]
+    fn simple2() {
+        let p = Path::new("clustering_small2.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert_eq!(cluster_spacing(4, &mut g), 8)
+    }
+
+    #[test]
+    fn simple3() {
+        let p = Path::new("clustering_small3.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert_eq!(cluster_spacing(4, &mut g), 7)
+    }
+
 }
