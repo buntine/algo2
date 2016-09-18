@@ -20,7 +20,8 @@ pub struct Vertex {
 #[derive(Debug)]
 pub struct Edge {
     cost: i32,
-    tail: usize, // This should be a borrow of another Vertex but I couldn't work it out.
+    head: usize,
+    tail: usize,
 }
 
 impl Ord for Edge {
@@ -86,8 +87,8 @@ impl Graph {
                     let head = (details[0] - 1) as usize;
                     let tail = (details[1] - 1) as usize;
 
-                    g.vertices[head].edges.push(Edge{tail: tail, cost: details[2]});
-                    g.vertices[tail].edges.push(Edge{tail: head, cost: details[2]});
+                    g.vertices[head].edges.push(Edge{head: head, tail: tail, cost: details[2]});
+                    g.vertices[tail].edges.push(Edge{head: tail, tail: head, cost: details[2]});
                 },
                 Err(e) => return Err(e),
             }
@@ -98,6 +99,19 @@ impl Graph {
 }
 
 pub fn cluster_spacing(clusters: i32, g: &mut Graph) -> i32 {
+    let mut t = Graph::new();
+    let mut edges: Vec<Edge> = vec![];
+
+    t.build(g.vertices.len() as i32);
+
+    for v in &g.vertices {
+        for e in &v.edges {
+            edges.push(Edge{head: e.head, tail: e.tail, cost: e.cost});
+        }
+    }
+
+    edges.sort_by(|a, b| a.cmp(b));
+
     2
 }
 
@@ -111,8 +125,8 @@ mod tests {
         let mut g = Graph::new();
 
         g.build(2);
-        g.vertices[0].edges.push(Edge{cost: 10, tail: 1});
-        g.vertices[1].edges.push(Edge{cost: 10, tail: 0});
+        g.vertices[0].edges.push(Edge{head: 0, cost: 10, tail: 1});
+        g.vertices[1].edges.push(Edge{head: 1, cost: 10, tail: 0});
 
         assert_eq!(g.vertices[1].label, 1);
         assert_eq!(g.vertices[1].leader, 1);
