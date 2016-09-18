@@ -2,6 +2,7 @@ use std::path::Path;
 use std::io::BufReader;
 use std::io::BufRead;
 use std::fs::File;
+use std::cmp::Ordering;
 
 #[derive(Debug)]
 pub struct Graph {
@@ -12,6 +13,7 @@ pub struct Graph {
 pub struct Vertex {
     label: i32,
     explored: bool,
+    leader: usize,
     edges: Vec<Edge>,
 }
 
@@ -21,6 +23,27 @@ pub struct Edge {
     tail: usize, // This should be a borrow of another Vertex but I couldn't work it out.
 }
 
+impl Ord for Edge {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.cost.partial_cmp(&other.cost).unwrap_or(Ordering::Equal)
+    }
+}
+
+impl PartialOrd for Edge {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for Edge {
+    fn eq(&self, other: &Self) -> bool {
+        self.cost == other.cost
+    }
+}
+
+impl Eq for Edge { }
+
+
 impl Graph {
     fn new() -> Graph {
         Graph{vertices: vec![]}
@@ -28,7 +51,7 @@ impl Graph {
 
     fn build(&mut self, size: i32) {
         for i in 0..size {
-            self.vertices.push(Vertex{label: i, explored: false, edges: vec![]});
+            self.vertices.push(Vertex{label: i, explored: false, leader: i as usize, edges: vec![]});
         }
     }
 
@@ -74,6 +97,10 @@ impl Graph {
     }
 }
 
+pub fn cluster_spacing(clusters: i32, g: &mut Graph) -> i32 {
+    2
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -88,6 +115,7 @@ mod tests {
         g.vertices[1].edges.push(Edge{cost: 10, tail: 0});
 
         assert_eq!(g.vertices[1].label, 1);
+        assert_eq!(g.vertices[1].leader, 1);
 
         let ref e = g.vertices[0].edges[0];
         assert_eq!(e.cost, 10);
@@ -104,6 +132,9 @@ mod tests {
         assert_eq!(g.vertices[5].label, 5);
         assert_eq!(g.vertices[30].label, 30);
 
+        assert_eq!(g.vertices[0].leader, 0);
+        assert_eq!(g.vertices[1].leader, 1);
+
         let ref e = g.vertices[0].edges[0];
         assert_eq!(e.cost, 6808);
         assert_eq!(e.tail, 1);
@@ -111,5 +142,13 @@ mod tests {
 
         let ref e = g.vertices[0].edges[3];
         assert_eq!(e.cost, 3659);
+    }
+
+    #[test]
+    fn simple1() {
+        let p = Path::new("clustering_small1.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert_eq!(cluster_spacing(4, &mut g), 2)
     }
 }
