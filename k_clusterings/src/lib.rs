@@ -88,7 +88,7 @@ impl Graph {
                     let tail = (details[1] - 1) as usize;
 
                     g.vertices[head].edges.push(Edge{head: head, tail: tail, cost: details[2]});
-                    g.vertices[tail].edges.push(Edge{head: tail, tail: head, cost: details[2]});
+//                    g.vertices[tail].edges.push(Edge{head: tail, tail: head, cost: details[2]});
                 },
                 Err(e) => return Err(e),
             }
@@ -98,11 +98,23 @@ impl Graph {
     }
 }
 
-pub fn cluster_spacing(clusters: i32, g: &mut Graph) -> i32 {
+fn update_leaders(g: &mut Graph, start: usize, leader: usize) {
+    g.vertices[start].leader = leader;
+
+    let tails: Vec<usize> = g.vertices[start].edges.iter().map(|e| e.tail).collect();
+
+    for t in tails {
+        update_leaders(g, t as usize, leader);
+    }
+}
+
+pub fn cluster_spacing(groups: usize, g: &mut Graph) -> i32 {
     let mut t = Graph::new();
     let mut edges: Vec<Edge> = vec![];
+    let mut clusters = g.vertices.len();
+    let mut min_spacing = 0;
 
-    t.build(g.vertices.len() as i32);
+    t.build(clusters as i32);
 
     for v in &g.vertices {
         for e in &v.edges {
@@ -112,7 +124,23 @@ pub fn cluster_spacing(clusters: i32, g: &mut Graph) -> i32 {
 
     edges.sort_by(|a, b| a.cmp(b));
 
-    2
+    for e in &edges {
+        if clusters <= groups {
+            min_spacing = e.cost;
+            break;
+        }
+
+        let leader = t.vertices[e.head].leader;
+
+        if leader != t.vertices[e.tail].leader {
+            update_leaders(&mut t, e.tail, leader);
+
+            t.vertices[e.head].edges.push(Edge{head: e.head, tail: e.tail, cost: e.cost});
+            clusters -= 1;
+        }
+    }
+
+    min_spacing
 }
 
 #[cfg(test)]
@@ -156,6 +184,14 @@ mod tests {
 
         let ref e = g.vertices[0].edges[3];
         assert_eq!(e.cost, 3659);
+    }
+
+    #[test]
+    fn execute() {
+        let p = Path::new("clustering1.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert_eq!(cluster_spacing(4, &mut g), 2)
     }
 
     #[test]
