@@ -44,7 +44,6 @@ impl PartialEq for Edge {
 
 impl Eq for Edge { }
 
-
 impl Graph {
     fn new() -> Graph {
         Graph{vertices: vec![]}
@@ -99,12 +98,10 @@ impl Graph {
 }
 
 fn update_leaders(g: &mut Graph, start: usize, leader: usize) {
-    g.vertices[start].leader = leader;
-
-    let tails: Vec<usize> = g.vertices[start].edges.iter().map(|e| e.tail).collect();
-
-    for t in tails {
-        update_leaders(g, t as usize, leader);
+    for mut v in &mut g.vertices {
+        if v.leader == start {
+            v.leader = leader;
+        }
     }
 }
 
@@ -132,24 +129,24 @@ pub fn cluster_spacing(groups: usize, g: &mut Graph) -> i32 {
         let tleader = t.vertices[e.tail].leader;
 
         if hleader != tleader {
-            println!("{}, {}", e.head, e.tail);
             if clusters <= groups {
                 min_spacing = e.cost;
-                println!("{:?}", sizes);
                 break;
             }
 
-            if sizes[e.head] >= sizes[e.tail] {
-                update_leaders(&mut t, e.tail, hleader);
-                sizes[e.head] += sizes[e.tail];
-                sizes[e.tail] = 0;
+            if sizes[hleader] >= sizes[tleader] {
+                update_leaders(&mut t, tleader, hleader);
+                sizes[hleader] += sizes[tleader];
+                sizes[tleader] = 0;
+
+                t.vertices[e.head].edges.push(Edge{head: e.head, tail: e.tail, cost: e.cost});
             } else {
-                update_leaders(&mut t, e.head, tleader);
-                sizes[e.tail] += sizes[e.head];
-                sizes[e.head] = 0;
+                update_leaders(&mut t, hleader, tleader);
+                sizes[tleader] += sizes[hleader];
+                sizes[hleader] = 0;
+                t.vertices[e.tail].edges.push(Edge{head: e.tail, tail: e.head, cost: e.cost});
             }
 
-            t.vertices[e.head].edges.push(Edge{head: e.head, tail: e.tail, cost: e.cost});
             clusters -= 1;
         }
     }
@@ -200,13 +197,13 @@ mod tests {
         assert_eq!(e.cost, 3659);
     }
 
-//    #[test]
-//    fn execute() {
-//        let p = Path::new("clustering1.txt");
- //       let mut g = Graph::from_file(p).ok().unwrap();
-//
- //       assert_eq!(cluster_spacing(4, &mut g), 2)
-  //  }
+    #[test]
+    fn execute() {
+        let p = Path::new("clustering1.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert_eq!(cluster_spacing(4, &mut g), 106)
+    }
 
     #[test]
     fn simple1() {
@@ -230,6 +227,14 @@ mod tests {
         let mut g = Graph::from_file(p).ok().unwrap();
 
         assert_eq!(cluster_spacing(4, &mut g), 7)
+    }
+
+    #[test]
+    fn simple4() {
+        let p = Path::new("clustering_small4.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert_eq!(cluster_spacing(4, &mut g), 17)
     }
 
 }
