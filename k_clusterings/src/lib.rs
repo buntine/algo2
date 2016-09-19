@@ -87,7 +87,7 @@ impl Graph {
                     let tail = (details[1] - 1) as usize;
 
                     g.vertices[head].edges.push(Edge{head: head, tail: tail, cost: details[2]});
-//                    g.vertices[tail].edges.push(Edge{head: tail, tail: head, cost: details[2]});
+                    g.vertices[tail].edges.push(Edge{head: tail, tail: head, cost: details[2]});
                 },
                 Err(e) => return Err(e),
             }
@@ -97,6 +97,7 @@ impl Graph {
     }
 }
 
+// Inefficient O(n) implementation. Recursive implementation proved troublesome.
 fn update_leaders(g: &mut Graph, start: usize, leader: usize) {
     for mut v in &mut g.vertices {
         if v.leader == start {
@@ -109,7 +110,6 @@ pub fn cluster_spacing(groups: usize, g: &mut Graph) -> i32 {
     let mut t = Graph::new();
     let mut edges: Vec<Edge> = vec![];
     let mut clusters = g.vertices.len();
-    let mut min_spacing = 0;
     let mut sizes: Vec<i32> = vec![];
 
     t.build(clusters as i32);
@@ -130,28 +130,27 @@ pub fn cluster_spacing(groups: usize, g: &mut Graph) -> i32 {
 
         if hleader != tleader {
             if clusters <= groups {
-                min_spacing = e.cost;
-                break;
+                return e.cost;
             }
 
             if sizes[hleader] >= sizes[tleader] {
                 update_leaders(&mut t, tleader, hleader);
                 sizes[hleader] += sizes[tleader];
                 sizes[tleader] = 0;
-
-                t.vertices[e.head].edges.push(Edge{head: e.head, tail: e.tail, cost: e.cost});
             } else {
                 update_leaders(&mut t, hleader, tleader);
                 sizes[tleader] += sizes[hleader];
                 sizes[hleader] = 0;
-                t.vertices[e.tail].edges.push(Edge{head: e.tail, tail: e.head, cost: e.cost});
             }
+
+            t.vertices[e.head].edges.push(Edge{head: e.head, tail: e.tail, cost: e.cost});
+            t.vertices[e.tail].edges.push(Edge{head: e.tail, tail: e.head, cost: e.cost});
 
             clusters -= 1;
         }
     }
 
-    min_spacing
+    0
 }
 
 #[cfg(test)]
