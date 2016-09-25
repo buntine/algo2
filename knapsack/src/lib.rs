@@ -24,8 +24,12 @@ impl Item {
 pub fn knapsack(items: Vec<Item>, weight: i32) -> i32 {
     let mut res: Vec<Vec<i32>> = vec![];
 
+    for i in 0..items.len() {
+        res.push(vec![]);
+    }
+
     for i in 0..weight {
-        res[0][i as usize] = 0;
+        res[0].push(0);
     }
 
     for i in 1..items.len() {
