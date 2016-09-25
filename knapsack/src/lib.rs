@@ -1,3 +1,4 @@
+use std::cmp;
 
 #[derive(Debug)]
 pub struct Item {
@@ -6,6 +7,10 @@ pub struct Item {
 }
 
 impl Item {
+    fn new(v: i32, w: i32) -> Item {
+        Item{value: v, weight: w}
+    }
+
     fn from_line(l: &str) -> Item {
         let ns: Vec<i32> = l.split(" ")
                             .take(2)
@@ -16,8 +21,20 @@ impl Item {
     }
 }
 
-pub fn knapsack(items: Vec<Item>, w: i32) -> i32 {
-    2
+pub fn knapsack(items: Vec<Item>, weight: i32) -> i32 {
+    let res: Vec<Vec<i32>> = vec![];
+
+    for i in 0..weight {
+        res[0][i] = 0;
+    }
+
+    for i in 1..items.len() {
+        for w in 0..weight {
+            res[i][w] = cmp::max(res[i-1][w], res[i-1][w-items[i].weight] + items[i].value);
+        }
+    }
+
+    res[items.len()-1][weight-1]
 }
 
 #[cfg(test)]
@@ -34,5 +51,17 @@ mod tests {
 
         assert_eq!(item2.value, 923);
         assert_eq!(item2.weight, 2006);
+    }
+
+    #[test]
+    fn knapsack1() {
+        let items: Vec<Item> = vec![
+            Item::new(4, 1),
+            Item::new(2, 1),
+            Item::new(6, 2),
+            Item::new(7, 3),
+        ];
+
+        assert_eq!(knapsack(items, 5), 14);
     }
 }
