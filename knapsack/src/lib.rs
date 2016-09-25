@@ -3,11 +3,11 @@ use std::cmp;
 #[derive(Debug)]
 pub struct Item {
     value: i32,
-    weight: i32,
+    weight: usize,
 }
 
 impl Item {
-    fn new(v: i32, w: i32) -> Item {
+    fn new(v: i32, w: usize) -> Item {
         Item{value: v, weight: w}
     }
 
@@ -17,36 +17,33 @@ impl Item {
                             .map(|n| n.parse::<i32>().expect("Invalid input"))
                             .collect();
 
-        Item{value: ns[0], weight: ns[1]}
+        Item{value: ns[0], weight: ns[1] as usize}
     }
 }
 
-pub fn knapsack(items: Vec<Item>, weight: i32) -> i32 {
-    let mut res: Vec<Vec<i32>> = vec![];
+pub fn knapsack(items: Vec<Item>, weight: usize) -> i32 {
+    let mut res: Vec<Vec<i32>> = 
+        [vec![0; weight + 1]].iter()
+                             .cycle()
+                             .take(items.len() + 1)
+                             .cloned()
+                             .collect();
 
     for i in 0..items.len() {
-        res.push(vec![]);
-    }
-
-    for i in 0..weight {
-        res[0].push(0);
-    }
-
-    for i in 1..items.len() {
-        for w in 0..weight {
-            let a = res[(i-1)][w as usize];
+        for w in 0..weight+1 {
+            let a = res[i][w];
 
             if items[i].weight > w {
-                res[i].push(a);
+                res[i+1][w] = a;
             } else {
-                let b = res[(i-1)][(w-items[i].weight) as usize] + items[i].value;
+                let b = res[i][(w-items[i].weight)] + items[i].value;
 
-                res[i].push(cmp::max(a, b));
+                res[i+1][w] = cmp::max(a, b);
             }
         }
     }
 
-    res[(items.len()-1)][(weight-1) as usize]
+    res[items.len()][weight]
 }
 
 #[cfg(test)]
@@ -74,6 +71,6 @@ mod tests {
             Item::new(7, 3),
         ];
 
-        assert_eq!(knapsack(items, 5), 14);
+        assert_eq!(knapsack(items, 5), 13);
     }
 }
