@@ -1,0 +1,6 @@
+[package]
+name = "knapsack"
+version = "0.1.0"
+authors = ["Bunts Thy Unholy <bunts@hhd.com.au>"]
+
+[dependencies]
