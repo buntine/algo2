@@ -112,5 +112,4 @@ mod tests {
 
         assert_eq!(knapsack(items, 10000), 2493893);
     }
-
 }
