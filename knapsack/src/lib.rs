@@ -1,4 +1,8 @@
 use std::cmp;
+use std::path::Path;
+use std::io::BufReader;
+use std::io::BufRead;
+use std::fs::File;
 
 #[derive(Debug)]
 pub struct Item {
@@ -19,6 +23,22 @@ impl Item {
 
         Item{value: ns[0], weight: ns[1] as usize}
     }
+}
+
+pub fn items_from_file(path: &Path) -> Result<Vec<Item>, std::io::Error> {
+    let file = try!(File::open(path));
+    let buffer = BufReader::new(&file);
+    let items = buffer.lines()
+                      .skip(1)
+                      .map(|l| {
+                          match l {
+                              Ok(parts) => Item::from_line(&parts[..]),
+                              Err(e) => panic!("Invalid input")
+                          }
+                      })
+                      .collect();
+ 
+    Ok(items)
 }
 
 pub fn knapsack(items: Vec<Item>, weight: usize) -> i32 {
@@ -49,6 +69,7 @@ pub fn knapsack(items: Vec<Item>, weight: usize) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::Path;
 
     #[test]
     fn representation() {
@@ -83,4 +104,13 @@ mod tests {
 
         assert_eq!(knapsack(items, 40), 45);
     }
+
+    #[test]
+    fn knapsack3() {
+        let p = Path::new("knapsack1.txt");
+        let items: Vec<Item> = items_from_file(p).ok().unwrap();
+
+        assert_eq!(knapsack(items, 10000), 2493893);
+    }
+
 }
