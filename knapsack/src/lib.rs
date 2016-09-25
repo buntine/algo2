@@ -22,19 +22,27 @@ impl Item {
 }
 
 pub fn knapsack(items: Vec<Item>, weight: i32) -> i32 {
-    let res: Vec<Vec<i32>> = vec![];
+    let mut res: Vec<Vec<i32>> = vec![];
 
     for i in 0..weight {
-        res[0][i] = 0;
+        res[0][i as usize] = 0;
     }
 
     for i in 1..items.len() {
         for w in 0..weight {
-            res[i][w] = cmp::max(res[i-1][w], res[i-1][w-items[i].weight] + items[i].value);
+            let a = res[(i-1)][w as usize];
+
+            if items[i].weight > w {
+                res[i].push(a);
+            } else {
+                let b = res[(i-1)][(w-items[i].weight) as usize] + items[i].value;
+
+                res[i].push(cmp::max(a, b));
+            }
         }
     }
 
-    res[items.len()-1][weight-1]
+    res[(items.len()-1)][(weight-1) as usize]
 }
 
 #[cfg(test)]
