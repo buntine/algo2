@@ -64,13 +64,23 @@ mod tests {
 
     #[test]
     fn knapsack1() {
-        let items: Vec<Item> = vec![
-            Item::new(4, 1),
-            Item::new(2, 1),
-            Item::new(6, 2),
-            Item::new(7, 3),
-        ];
+        let items: Vec<Item> =
+            vec![(4, 1), (2, 1), (6, 2), (7, 3)].iter()
+                                                .map(|&(v, w)| Item::new(v, w))
+                                                .collect();
 
         assert_eq!(knapsack(items, 5), 13);
+    }
+
+    #[test]
+    fn knapsack2() {
+        let items: Vec<Item> =
+            vec![(7, 5), (2, 5), (7, 7), (9, 3),
+                 (5, 9), (4, 1), (2, 8), (6, 8),
+                 (1, 9), (7, 7)].iter()
+                                .map(|&(v, w)| Item::new(v, w))
+                                .collect();
+
+        assert_eq!(knapsack(items, 40), 45);
     }
 }
