@@ -41,7 +41,7 @@ pub fn items_from_file(path: &Path) -> Result<Vec<Item>, std::io::Error> {
     Ok(items)
 }
 
-pub fn knapsack(items: Vec<Item>, weight: usize) -> i32 {
+pub fn knapsack(items: &[Item], weight: usize) -> i32 {
     let mut res: Vec<Vec<i32>> = 
         [vec![0; weight + 1]].iter()
                              .cycle()
@@ -90,7 +90,7 @@ mod tests {
                                                 .map(|&(v, w)| Item::new(v, w))
                                                 .collect();
 
-        assert_eq!(knapsack(items, 5), 13);
+        assert_eq!(knapsack(&items[..], 5), 13);
     }
 
     #[test]
@@ -102,7 +102,7 @@ mod tests {
                                 .map(|&(v, w)| Item::new(v, w))
                                 .collect();
 
-        assert_eq!(knapsack(items, 40), 45);
+        assert_eq!(knapsack(&items[..], 40), 45);
     }
 
     #[test]
@@ -110,6 +110,6 @@ mod tests {
         let p = Path::new("knapsack1.txt");
         let items: Vec<Item> = items_from_file(p).ok().unwrap();
 
-        assert_eq!(knapsack(items, 10000), 2493893);
+        assert_eq!(knapsack(&items[..], 10000), 2493893);
     }
 }

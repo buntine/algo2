@@ -45,7 +45,7 @@ pub fn knapsack(items: &[Item], weight: usize) -> i32 {
     if items.len() <= 0 {
         return 0;
     } else if items.len() == 1 {
-        if items[0].weight < weight {
+        if items[0].weight <= weight {
             return items[0].value;
         } else {
             return 0;
