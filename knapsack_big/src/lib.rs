@@ -41,9 +41,11 @@ pub fn items_from_file(path: &Path) -> Result<Vec<Item>, std::io::Error> {
     Ok(items)
 }
 
-pub fn knapsack(items: &[Item], weight: usize) -> i32 {
+pub fn knapsack(items: &[Item], weight: usize, store: &mut [Vec<i32>]) -> i32 {
     if items.len() <= 0 {
         return 0;
+    } else if store[items.len() - 1][weight] > -1 {
+        return store[items.len() - 1][weight];
     } else if items.len() == 1 {
         if items[0].weight <= weight {
             return items[0].value;
@@ -54,12 +56,15 @@ pub fn knapsack(items: &[Item], weight: usize) -> i32 {
         let butlast = &items[..(items.len() - 1)];
         let last = items.last().unwrap();
 
-        if last.weight > weight {
-            return knapsack(butlast, weight);
-        } else {
-            return cmp::max(knapsack(butlast, weight),
-                            knapsack(butlast, weight - last.weight) + last.value);
-        }
+        let result = match last.weight > weight {
+            true => knapsack(butlast, weight, store),
+            false => cmp::max(knapsack(butlast, weight, store),
+                              knapsack(butlast, weight - last.weight, store) + last.value),
+        };
+
+        store[items.len() - 1][weight] = result;
+
+        return result;
     }
 }
 
@@ -87,26 +92,57 @@ mod tests {
                                                 .map(|&(v, w)| Item::new(v, w))
                                                 .collect();
 
-        assert_eq!(knapsack(&items[..], 5), 13);
-    }
+    let mut store: Vec<Vec<i32>> = 
+        [vec![-1; 6]].iter()
+                             .cycle()
+                             .take(items.len() + 1)
+                             .cloned()
+                             .collect();
 
-    #[test]
-    fn knapsack2() {
-        let items: Vec<Item> =
-            vec![(7, 5), (2, 5), (7, 7), (9, 3),
-                 (5, 9), (4, 1), (2, 8), (6, 8),
-                 (1, 9), (7, 7)].iter()
-                                .map(|&(v, w)| Item::new(v, w))
-                                .collect();
-
-        assert_eq!(knapsack(&items[..], 40), 45);
+        assert_eq!(knapsack(&items[..], 5, &mut store[..]), 13);
     }
 
 //    #[test]
-//    fn knapsack3() {
-    //    let p = Path::new("knapsack2.txt");
-   //     let items: Vec<Item> = items_from_file(p).ok().unwrap();
+ //   fn knapsack2() {
+  //      let items: Vec<Item> =
+   //         vec![(7, 5), (2, 5), (7, 7), (9, 3),
+   //              (5, 9), (4, 1), (2, 8), (6, 8),
+    //             (1, 9), (7, 7)].iter()
+   //                             .map(|&(v, w)| Item::new(v, w))
+   //                             .collect();
 //
- //       assert_eq!(knapsack(items, 10000), 2493893);
- //   }
+//        assert_eq!(knapsack(&items[..], 40), 45);
+//    }
+
+    #[test]
+    fn knapsack3() {
+        let p = Path::new("knapsack1.txt");
+        let items: Vec<Item> = items_from_file(p).ok().unwrap();
+    let mut store: Vec<Vec<i32>> = 
+        [vec![-1; 10001]].iter()
+                             .cycle()
+                             .take(items.len() + 1)
+                             .cloned()
+                             .collect();
+
+
+
+        assert_eq!(knapsack(&items[..], 10000, &mut store[..]), 2493893);
+    }
+
+    #[test]
+    fn knapsack4() {
+        let p = Path::new("knapsack2.txt");
+        let items: Vec<Item> = items_from_file(p).ok().unwrap();
+    let mut store: Vec<Vec<i32>> = 
+        [vec![-1; 2000001]].iter()
+                             .cycle()
+                             .take(items.len() + 1)
+                             .cloned()
+                             .collect();
+
+
+
+        assert_eq!(knapsack(&items[..], 2000000, &mut store[..]), 2493893);
+    }
 }
