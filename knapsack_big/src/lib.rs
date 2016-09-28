@@ -54,9 +54,7 @@ pub fn knapsack(items: &[Item], weight: usize) -> i32 {
 }
 
 pub fn caching_knapsack(items: &[Item], weight: usize, store: &mut [HashMap<usize, i32>]) -> i32 {
-    if items.len() <= 0 {
-        return 0;
-    } else if store[items.len() - 1].get(&weight).is_some() {
+    if store[items.len() - 1].get(&weight).is_some() {
         return *store[items.len() - 1].get(&weight).unwrap();
     } else if items.len() == 1 {
         if items[0].weight <= weight {
@@ -98,34 +96,27 @@ mod tests {
         assert_eq!(item2.weight, 2006);
     }
 
- //   #[test]
-  //  fn knapsack1() {
-//        let items: Vec<Item> =
-//            vec![(4, 1), (2, 1), (6, 2), (7, 3)].iter()
-//                                                .map(|&(v, w)| Item::new(v, w))
-//                                                .collect();
-//
-//    let mut store: Vec<Vec<i32>> = 
-//        [vec![-1; 6]].iter()
-//                             .cycle()
-//                             .take(items.len() + 1)
-//                             .cloned()
-//                             .collect();
-//
-//        assert_eq!(knapsack(&items[..], 5, &mut store[..]), 13);
-//    }
+    #[test]
+    fn knapsack1() {
+        let items: Vec<Item> =
+            vec![(4, 1), (2, 1), (6, 2), (7, 3)].iter()
+                                                .map(|&(v, w)| Item::new(v, w))
+                                                .collect();
 
-//    #[test]
- //   fn knapsack2() {
-  //      let items: Vec<Item> =
-   //         vec![(7, 5), (2, 5), (7, 7), (9, 3),
-   //              (5, 9), (4, 1), (2, 8), (6, 8),
-    //             (1, 9), (7, 7)].iter()
-   //                             .map(|&(v, w)| Item::new(v, w))
-   //                             .collect();
-//
-//        assert_eq!(knapsack(&items[..], 40), 45);
-//    }
+        assert_eq!(knapsack(&items[..], 5), 13);
+    }
+
+    #[test]
+    fn knapsack2() {
+        let items: Vec<Item> =
+            vec![(7, 5), (2, 5), (7, 7), (9, 3),
+                 (5, 9), (4, 1), (2, 8), (6, 8),
+                 (1, 9), (7, 7)].iter()
+                                .map(|&(v, w)| Item::new(v, w))
+                                .collect();
+
+        assert_eq!(knapsack(&items[..], 40), 45);
+    }
 
     #[test]
     fn knapsack3() {
