@@ -54,27 +54,34 @@ pub fn knapsack(items: &[Item], weight: usize) -> i32 {
 }
 
 pub fn caching_knapsack(items: &[Item], weight: usize, store: &mut [HashMap<usize, i32>]) -> i32 {
-    if store[items.len() - 1].get(&weight).is_some() {
-        return *store[items.len() - 1].get(&weight).unwrap();
-    } else if items.len() == 1 {
+    if let Some(lookup) = store[items.len() - 1].get(&weight) {
+        return *lookup;
+    }
+
+    if items.len() == 1 {
         if items[0].weight <= weight {
-            return items[0].value;
+            items[0].value
         } else {
-            return 0;
+            0
         }
     } else {
         let butlast = &items[..(items.len() - 1)];
-        let last = items.last().unwrap();
+       
+        if let Some(last) = items.last() {
+            let without = caching_knapsack(butlast, weight, store);
 
-        let result = match last.weight > weight {
-            true => caching_knapsack(butlast, weight, store),
-            false => cmp::max(caching_knapsack(butlast, weight, store),
-                              caching_knapsack(butlast, weight - last.weight, store) + last.value),
-        };
+            let max = match last.weight > weight {
+                true => without,
+                false => cmp::max(without,
+                                  caching_knapsack(butlast, weight - last.weight, store) + last.value),
+            };
 
-        store[items.len() - 1].insert(weight, result);
+            store[items.len() - 1].insert(weight, max);
 
-        return result;
+            max
+        } else {
+            0
+        }
     }
 }
 
@@ -82,7 +89,6 @@ pub fn caching_knapsack(items: &[Item], weight: usize, store: &mut [HashMap<usiz
 mod tests {
     use super::*;
     use std::path::Path;
-    use std::collections::HashMap;
 
     #[test]
     fn representation() {
@@ -126,17 +132,17 @@ mod tests {
         assert_eq!(knapsack(&items[..], 10000), 2493893);
     }
 
-//    #[test]
-//    fn knapsack4() {
-//        let p = Path::new("knapsack2.txt");
-//        let items: Vec<Item> = items_from_file(p).ok().unwrap();
-//    let mut store: Vec<HashMap<usize, i32>> = 
-//        [HashMap::new()].iter()
-//                             .cycle()
-//                             .take(items.len() + 1)
-//                             .cloned()
-//                             .collect();
-//
-//        assert_eq!(knapsack(&items[..], 2000000, &mut store[..]), 4243395);
-//    }
+    #[test]
+    fn knapsack4() {
+        let p = Path::new("knapsack2.txt");
+        let items: Vec<Item> = items_from_file(p).ok().unwrap();
+    let mut store: Vec<HashMap<usize, i32>> = 
+        [HashMap::new()].iter()
+                             .cycle()
+                             .take(items.len() + 1)
+                             .cloned()
+                             .collect();
+
+        assert_eq!(knapsack(&items[..], 2000000, &mut store[..]), 4243395);
+    }
 }
