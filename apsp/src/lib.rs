@@ -64,7 +64,6 @@ impl Graph {
                     let tail = (details[1] - 1) as usize;
 
                     g.vertices[head].edges.push(Edge{tail: tail, weight: details[2]});
-//                    g.vertices[tail].edges.push(Edge{tail: head, weight: details[2]});
                 },
                 Err(e) => return Err(e),
             }
@@ -180,21 +179,21 @@ mod tests {
         assert_eq!(apsp(&mut g).ok().unwrap(), -10003);
     }
 
-    //#[test]
-  //  fn large1() {
- //       let p = Path::new("g1.txt");
- //       let mut g = Graph::from_file(p).ok().unwrap();
-//
-//        assert!(apsp(&mut g).is_err());
-//    }
+    #[test]
+    fn large1() {
+        let p = Path::new("g1.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
 
-//    #[test]
-//    fn large2() {
-//        let p = Path::new("g2.txt");
-//        let mut g = Graph::from_file(p).ok().unwrap();
-//
-//        assert!(apsp(&mut g).is_err());
- //   }
+        assert!(apsp(&mut g).is_err());
+    }
+
+    #[test]
+    fn large2() {
+        let p = Path::new("g2.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert!(apsp(&mut g).is_err());
+    }
 
     #[test]
     fn large3() {
