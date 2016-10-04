@@ -74,6 +74,10 @@ impl Graph {
     }
 }
 
+pub fn apsp(g: &mut Graph) -> Result<i32, &'static str> {
+    Ok(1)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -112,5 +116,21 @@ mod tests {
         let ref e = g.vertices[4].edges[1];
         assert_eq!(e.weight, 16);
         assert_eq!(e.tail, 17);
+    }
+
+    #[test]
+    fn simepl1() {
+        let p = Path::new("g_simple1.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert_eq!(apsp(&mut g).ok().unwrap(), -6);
+    }
+
+    #[test]
+    fn simepl2() {
+        let p = Path::new("g_simple2.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert!(apsp(&mut g).is_err());
     }
 }
