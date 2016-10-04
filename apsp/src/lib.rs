@@ -75,6 +75,37 @@ impl Graph {
 }
 
 pub fn apsp(g: &mut Graph) -> Result<i32, &'static str> {
+    let len = g.vertices.len();
+    let mut dist = vec![
+                       vec![std::i32::MAX; len];
+                       len];
+
+    for i in 0..(len - 1) {
+        dist[i][i] = 0;
+    }
+
+    for v in &g.vertices {
+        for e in &v.edges {
+            dist[v.label as usize][e.tail] = e.weight;
+        }
+    }
+
+    for k in 0..(len-1) {
+        for i in 0..(len-1) {
+            for j in 0..(len-1) {
+                if dist[i][j] > dist[i][k] + dist[k][j] {
+                    dist[i][j] = dist[i][k] + dist[k][j];
+                }
+            }
+        }
+    }
+
+    for i in 0..(len - 1) {
+        if dist[i][i] < 0 {
+            return Err("Negative cycle");
+        }
+    }
+
     Ok(1)
 }
 
