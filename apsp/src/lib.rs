@@ -64,7 +64,7 @@ impl Graph {
                     let tail = (details[1] - 1) as usize;
 
                     g.vertices[head].edges.push(Edge{tail: tail, weight: details[2]});
-                    g.vertices[tail].edges.push(Edge{tail: head, weight: details[2]});
+//                    g.vertices[tail].edges.push(Edge{tail: head, weight: details[2]});
                 },
                 Err(e) => return Err(e),
             }
@@ -76,11 +76,12 @@ impl Graph {
 
 pub fn apsp(g: &mut Graph) -> Result<i32, &'static str> {
     let len = g.vertices.len();
-    let mut dist = vec![
+    let mut smallest = std::i32::MAX;
+    let mut dist: Vec<Vec<i32>> = vec![
                        vec![std::i32::MAX; len];
                        len];
 
-    for i in 0..(len - 1) {
+    for i in 0..len {
         dist[i][i] = 0;
     }
 
@@ -90,23 +91,27 @@ pub fn apsp(g: &mut Graph) -> Result<i32, &'static str> {
         }
     }
 
-    for k in 0..(len-1) {
-        for i in 0..(len-1) {
-            for j in 0..(len-1) {
-                if dist[i][j] > dist[i][k] + dist[k][j] {
-                    dist[i][j] = dist[i][k] + dist[k][j];
+    for k in 0..len {
+        if dist[k][k] < 0 {
+            return Err("Negative cycle");
+        }
+
+        for i in 0..len {
+            for j in 0..len {
+                if dist[i][k] == std::i32::MAX || dist[k][j] == std::i32::MAX {
+                    continue;
+                }
+
+                dist[i][j] = std::cmp::min(dist[i][j], dist[i][k] + dist[k][j]);
+
+                if dist[i][j] < smallest {
+                    smallest = dist[i][j];
                 }
             }
         }
     }
 
-    for i in 0..(len - 1) {
-        if dist[i][i] < 0 {
-            return Err("Negative cycle");
-        }
-    }
-
-    Ok(1)
+    Ok(smallest)
 }
 
 #[cfg(test)]
@@ -150,18 +155,52 @@ mod tests {
     }
 
     #[test]
-    fn simepl1() {
+    fn simple1() {
         let p = Path::new("g_simple1.txt");
         let mut g = Graph::from_file(p).ok().unwrap();
 
+        assert!(apsp(&mut g).is_ok());
         assert_eq!(apsp(&mut g).ok().unwrap(), -6);
     }
 
     #[test]
-    fn simepl2() {
+    fn simple2() {
         let p = Path::new("g_simple2.txt");
         let mut g = Graph::from_file(p).ok().unwrap();
 
         assert!(apsp(&mut g).is_err());
+    }
+
+    #[test]
+    fn simple3() {
+        let p = Path::new("g_simple3.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert!(apsp(&mut g).is_ok());
+        assert_eq!(apsp(&mut g).ok().unwrap(), -10003);
+    }
+
+    //#[test]
+  //  fn large1() {
+ //       let p = Path::new("g1.txt");
+ //       let mut g = Graph::from_file(p).ok().unwrap();
+//
+//        assert!(apsp(&mut g).is_err());
+//    }
+
+//    #[test]
+//    fn large2() {
+//        let p = Path::new("g2.txt");
+//        let mut g = Graph::from_file(p).ok().unwrap();
+//
+//        assert!(apsp(&mut g).is_err());
+ //   }
+
+    #[test]
+    fn large3() {
+        let p = Path::new("g3.txt");
+        let mut g = Graph::from_file(p).ok().unwrap();
+
+        assert_eq!(apsp(&mut g).ok().unwrap(), -19);
     }
 }
