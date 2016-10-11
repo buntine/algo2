@@ -91,6 +91,10 @@ impl Graph {
 
         Ok(g)
     }
+
+    fn tsp(g: &mut Graph) -> i32 {
+        10
+    }
 }
 
 #[cfg(test)]
@@ -128,8 +132,11 @@ mod tests {
         let ref e1 = g.vertices[0].edges[0];
         assert_eq!(format!("{:.3}", e1.cost), "2.236");
 
-        let ref e2 = g.vertices[0].edges[2];
-        assert_eq!(format!("{:.3}", e2.cost), "3.162");
+        let ref e1 = g.vertices[1].edges[0];
+        assert_eq!(format!("{:.3}", e1.cost), "2.236");
+
+        let ref e3 = g.vertices[0].edges[2];
+        assert_eq!(format!("{:.3}", e3.cost), "3.162");
 
     }
 }
