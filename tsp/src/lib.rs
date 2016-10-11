@@ -21,6 +21,12 @@ pub struct Edge {
     tail: usize, // This should be a borrow of another Vertex but I couldn't work it out.
 }
 
+#[derive(Debug)]
+pub struct Point {
+    x: f32,
+    y: f32,
+}
+
 impl Graph {
     fn new() -> Graph {
         Graph{vertices: vec![]}
@@ -44,32 +50,30 @@ impl Graph {
             .collect()
     }
 
-    fn from_file(path: &Path) -> Result<Graph, std::io::Error> {
+    fn from_plot(path: &Path) -> Result<Graph, std::io::Error> {
         let mut g = Graph{vertices: vec![]};
         let file = try!(File::open(path));
         let mut buffer = BufReader::new(&file);
         let mut first_line = String::new();
+        let mut points: Vec<Point> = vec![];
         
         try!(buffer.read_line(&mut first_line));
 
-        let details = Graph::split_line::<i32>(&first_line[..]);
+        let vertice_count = first_line.trim().parse::<i32>().ok().expect("Invalid vertice count");
 
-        g.build(details[0]);
+        g.build(vertice_count);
 
         for l in buffer.lines() {
             match l {
                 Ok(parts) => {
-                    let details = Graph::split_line::<i32>(&parts[..]);
-                    let head = (details[0] - 1) as usize;
-                    let tail = (details[1] - 1) as usize;
+                    let details = Graph::split_line::<f32>(&parts[..]);
 
-                    g.vertices[head].edges.push(Edge{tail: tail, cost: details[2]});
-                    g.vertices[tail].edges.push(Edge{tail: head, cost: details[2]});
-                },
+                    points.push(Point{x: details[0], y: details[1]});
+                }
                 Err(e) => return Err(e),
             }
         }
- 
+
         Ok(g)
     }
 }
@@ -92,5 +96,18 @@ mod tests {
         let ref e = g.vertices[0].edges[0];
         assert_eq!(e.cost, 10);
         assert_eq!(g.vertices[e.tail].label, 1);
+    }
+
+    #[test]
+    fn representation() {
+        let p = Path::new("tsp_simple1.txt");
+        let mut g = Graph::from_plot(p).ok().unwrap();
+
+        assert_eq!(g.vertices[0].label, 0);
+
+        assert_eq!(g.vertices[0].edges.len(), 3);
+
+        let ref e = g.vertices[0].edges[0];
+        assert_eq!(e.cost, 2);
     }
 }
