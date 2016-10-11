@@ -2,6 +2,7 @@ use std::path::Path;
 use std::io::BufReader;
 use std::io::BufRead;
 use std::fs::File;
+use std::num;
 
 #[derive(Debug)]
 pub struct Graph {
@@ -17,7 +18,7 @@ pub struct Vertex {
 
 #[derive(Debug)]
 pub struct Edge {
-    cost: i32,
+    cost: f32,
     tail: usize, // This should be a borrow of another Vertex but I couldn't work it out.
 }
 
@@ -63,6 +64,7 @@ impl Graph {
 
         g.build(vertice_count);
 
+        // Collect points into a vector.
         for l in buffer.lines() {
             match l {
                 Ok(parts) => {
@@ -71,6 +73,19 @@ impl Graph {
                     points.push(Point{x: details[0], y: details[1]});
                 }
                 Err(e) => return Err(e),
+            }
+        }
+
+        // Build complete graph form Euclidian distances of points.
+        for i in 0..points.len() {
+            let ref p1 = points[i];
+
+            for n in (i+1)..points.len() {
+                let ref p2 = points[n];
+                let cost = ((p1.x - p2.x).powf(2.0) + (p1.y - p2.y).powf(2.0)).sqrt();
+
+                g.vertices[i].edges.push(Edge{tail: n, cost: cost});
+                g.vertices[n].edges.push(Edge{tail: i, cost: cost});
             }
         }
 
@@ -88,13 +103,13 @@ mod tests {
         let mut g = Graph::new();
 
         g.build(2);
-        g.vertices[0].edges.push(Edge{cost: 10, tail: 1});
-        g.vertices[1].edges.push(Edge{cost: 10, tail: 0});
+        g.vertices[0].edges.push(Edge{cost: 10.0, tail: 1});
+        g.vertices[1].edges.push(Edge{cost: 10.0, tail: 0});
 
         assert_eq!(g.vertices[1].label, 1);
 
         let ref e = g.vertices[0].edges[0];
-        assert_eq!(e.cost, 10);
+        assert_eq!(e.cost, 10.0);
         assert_eq!(g.vertices[e.tail].label, 1);
     }
 
@@ -106,8 +121,15 @@ mod tests {
         assert_eq!(g.vertices[0].label, 0);
 
         assert_eq!(g.vertices[0].edges.len(), 3);
+        assert_eq!(g.vertices[1].edges.len(), 3);
+        assert_eq!(g.vertices[2].edges.len(), 3);
+        assert_eq!(g.vertices[3].edges.len(), 3);
 
-        let ref e = g.vertices[0].edges[0];
-        assert_eq!(e.cost, 2);
+        let ref e1 = g.vertices[0].edges[0];
+        assert_eq!(format!("{:.3}", e1.cost), "2.236");
+
+        let ref e2 = g.vertices[0].edges[2];
+        assert_eq!(format!("{:.3}", e2.cost), "3.162");
+
     }
 }
